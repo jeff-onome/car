@@ -64,7 +64,7 @@ const Contact: React.FC = () => {
 
                 <div className="mt-8">
                     <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-muted">
-                         <img src="https://loremflickr.com/600/338/map,city?lock=302" alt="Map to dealership" className="object-cover"/>
+                         <img src="https://images.unsplash.com/photo-1579532589218-1cde4ac8c422?q=80&w=1740&auto=format&fit=crop" alt="Map to dealership" className="object-cover"/>
                     </div>
                 </div>
             </div>

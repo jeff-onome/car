@@ -37,3 +37,19 @@ export interface User {
   country: string;
   state: string;
 }
+
+export interface TestDrive {
+  id: number;
+  carId: number;
+  bookingDate: string;
+  location: string;
+  status: 'Approved' | 'Pending' | 'Completed' | 'Cancelled';
+}
+
+export interface Purchase {
+  id: number;
+  carId: number;
+  purchaseDate: string;
+  pricePaid: number;
+  dealership: string;
+}

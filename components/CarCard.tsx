@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Car } from '../types';
-import { FuelIcon, GaugeIcon, TransmissionIcon } from './IconComponents';
+import { FuelIcon, GaugeIcon, TransmissionIcon, HeartIcon, CompareIcon } from './IconComponents';
+import { useUserData } from '../hooks/useUserData';
 
 interface CarCardProps {
   car: Car;
@@ -14,14 +15,32 @@ const tagColors = {
 };
 
 const CarCard: React.FC<CarCardProps> = ({ car }) => {
+  const { favorites, compareItems, toggleFavorite, toggleCompare, user } = useUserData();
+  const isFavorite = favorites.includes(car.id);
+  const isCompared = compareItems.includes(car.id);
+  
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(car.id);
+  };
+  
+  const handleToggleCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleCompare(car.id);
+  };
+
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg hover:shadow-primary/20 transition-shadow duration-300 flex flex-col group">
       <div className="relative overflow-hidden">
-        <img 
-          src={car.images[0]} 
-          alt={`${car.make} ${car.model}`} 
-          className="w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300"
-        />
+        <Link to={`/car/${car.id}`}>
+            <img 
+              src={car.images[0]} 
+              alt={`${car.make} ${car.model}`} 
+              className="w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300"
+            />
+        </Link>
         <div className="absolute top-2 right-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
             {car.condition}
         </div>
@@ -29,6 +48,26 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
           <div className={`absolute top-2 left-2 text-white text-xs font-bold px-2 py-1 rounded-full ${tagColors[car.tag]}`}>
             {car.tag}
           </div>
+        )}
+        {user && (
+           <div className="absolute bottom-2 right-2 flex space-x-2">
+            <button
+              onClick={handleToggleCompare}
+              title={isCompared ? "Remove from Compare" : "Add to Compare"}
+              className={`p-2 rounded-full transition-colors duration-200 ${isCompared ? 'bg-accent text-accent-foreground' : 'bg-black/50 text-white hover:bg-accent'}`}
+              aria-pressed={isCompared}
+            >
+              <CompareIcon className="h-5 w-5" />
+            </button>
+             <button
+              onClick={handleToggleFavorite}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+              className={`p-2 rounded-full transition-colors duration-200 ${isFavorite ? 'bg-red-500 text-white' : 'bg-black/50 text-white hover:bg-red-500'}`}
+              aria-pressed={isFavorite}
+            >
+              <HeartIcon className={`h-5 w-5 ${isFavorite ? 'fill-current' : 'fill-none'}`} />
+            </button>
+           </div>
         )}
       </div>
       <div className="p-6 flex flex-col flex-grow">

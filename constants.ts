@@ -1,4 +1,5 @@
-import type { Car, FaqItem, Testimonial } from './types';
+
+import type { Car, FaqItem, Testimonial, TestDrive, Purchase } from './types';
 
 export const CARS: Car[] = [
   {
@@ -169,49 +170,91 @@ export const CARS: Car[] = [
   }
 ];
 
+
 export const FAQ_DATA: FaqItem[] = [
-  {
-    question: "What financing options do you offer?",
-    answer: "We partner with a variety of trusted lenders to offer flexible financing options for all credit levels. You can apply online through our secure portal or speak with one of our finance specialists to find the best plan for you."
-  },
-  {
-    question: "Can I trade in my current vehicle?",
-    answer: "Absolutely! We offer competitive trade-in values for all types of vehicles. You can get an instant estimate on our website, and we'll perform a final appraisal when you visit our dealership. The trade-in value can be applied directly to your new purchase."
-  },
-  {
-    question: "Do your used cars come with a warranty?",
-    answer: "Yes, many of our certified pre-owned vehicles come with a comprehensive limited warranty for your peace of mind. We also offer extended warranty plans for additional coverage. Please ask a sales associate for details on a specific vehicle."
-  },
-  {
-    question: "How do you ensure the quality of your used cars?",
-    answer: "Every used vehicle at AutoSphere undergoes a rigorous multi-point inspection by our certified technicians. We check everything from the engine and transmission to the brakes and electronics to ensure it meets our high standards of quality and safety."
-  },
-  {
-    question: "Can I test drive a car before buying?",
-    answer: "Of course! We encourage test drives to ensure the vehicle is the perfect fit for you. You can schedule a test drive online or simply stop by our dealership. Please bring a valid driver's license."
-  }
+    {
+      question: "What financing options do you offer?",
+      answer: "We partner with a variety of trusted lenders to offer flexible financing options for all credit levels. You can apply online through our secure portal or speak with one of our finance specialists to find the best plan for you."
+    },
+    {
+      question: "Can I trade in my current vehicle?",
+      answer: "Absolutely! We offer competitive trade-in values for all types of vehicles. You can get an instant estimate on our website, and we'll perform a final appraisal when you visit our dealership. The trade-in value can be applied directly to your new purchase."
+    },
+    {
+      question: "Do your used cars come with a warranty?",
+      answer: "Yes, many of our certified pre-owned vehicles come with a comprehensive limited warranty for your peace of mind. We also offer extended warranty plans for additional coverage. Please ask a sales associate for details on a specific vehicle."
+    },
+    {
+      question: "How do you ensure the quality of your used cars?",
+      answer: "Every used vehicle at AutoSphere undergoes a rigorous multi-point inspection by our certified technicians. We check everything from the engine and transmission to the brakes and electronics to ensure it meets our high standards of quality and safety."
+    },
+    {
+      question: "Can I test drive a car before buying?",
+      answer: "Of course! We encourage test drives to ensure the vehicle is the perfect fit for you. You can schedule a test drive online or simply stop by our dealership. Please bring a valid driver's license."
+    }
 ];
 
 export const TESTIMONIALS: Testimonial[] = [
+    {
+        quote: "The team at AutoSphere made my car buying experience incredibly smooth and hassle-free. They were transparent, knowledgeable, and found the perfect car for me. Highly recommended!",
+        author: "Tunde Adebayo",
+        location: "Lagos, Nigeria",
+        avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=100&q=80",
+        rating: 5,
+    },
+    {
+        quote: "I was impressed with the quality of their inventory and the professionalism of the staff. No pressure, just great service. I'm thrilled with my new BMW!",
+        author: "Fatima Aliyu",
+        location: "Abuja, Nigeria",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
+        rating: 5,
+    },
+    {
+        quote: "Finding a reliable used car was my top priority, and AutoSphere delivered. Their multi-point inspection gave me peace of mind, and the price was fair. A truly trustworthy dealership.",
+        author: "Chinedu Okoro",
+        location: "Port Harcourt, Nigeria",
+        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80",
+        rating: 4,
+    }
+];
+
+export const MOCK_TEST_DRIVES: TestDrive[] = [
   {
-    quote: "The team at AutoSphere made my car buying experience incredibly smooth and hassle-free. They were transparent, knowledgeable, and found the perfect car for me. Highly recommended!",
-    author: "Tunde Adebayo",
-    location: "Lagos, Nigeria",
-    avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=100&q=80",
-    rating: 5,
+    id: 1,
+    carId: 2, // Ford Mustang GT
+    bookingDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    location: 'Lagos Dealership',
+    status: 'Approved',
   },
   {
-    quote: "I was impressed with the quality of their inventory and the professionalism of the staff. No pressure, just great service. I'm thrilled with my new BMW!",
-    author: "Fatima Aliyu",
-    location: "Abuja, Nigeria",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
-    rating: 5,
+    id: 2,
+    carId: 8, // Mercedes-Benz G-Class
+    bookingDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    location: 'Abuja Dealership',
+    status: 'Pending',
   },
   {
-    quote: "Finding a reliable used car was my top priority, and AutoSphere delivered. Their multi-point inspection gave me peace of mind, and the price was fair. A truly trustworthy dealership.",
-    author: "Chinedu Okoro",
-    location: "Port Harcourt, Nigeria",
-    avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80",
-    rating: 4,
+    id: 3,
+    carId: 4, // Toyota RAV4 Hybrid
+    bookingDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    location: 'Lagos Dealership',
+    status: 'Completed',
+  },
+];
+
+export const MOCK_PURCHASES: Purchase[] = [
+  {
+    id: 1,
+    carId: 1, // Tesla Model S Plaid
+    purchaseDate: new Date('2023-11-15T10:00:00Z').toISOString(),
+    pricePaid: 140000000,
+    dealership: 'Lagos Dealership',
+  },
+  {
+    id: 2,
+    carId: 5, // BMW M3 Competition
+    purchaseDate: new Date('2024-02-20T14:30:00Z').toISOString(),
+    pricePaid: 125000000,
+    dealership: 'Abuja Dealership',
   }
 ];

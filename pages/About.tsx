@@ -22,7 +22,7 @@ const About: React.FC = () => {
             </p>
           </div>
           <div>
-            <img src="https://plus.unsplash.com/premium_photo-1661767467261-4a4bed92a507?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dGVhbXxlbnwwfHwwfHx8MA%3D%3D" alt="AutoSphere Team" className="rounded-lg shadow-xl"/>
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop" alt="AutoSphere Team" className="rounded-lg shadow-xl"/>
           </div>
         </div>
 

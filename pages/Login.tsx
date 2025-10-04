@@ -33,8 +33,14 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
-      <div className="max-w-md w-full space-y-8 relative">
+    <div className="relative flex flex-grow items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div 
+        className="absolute inset-0 w-full h-full bg-cover bg-center z-0 opacity-20"
+        style={{backgroundImage: "url('https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=1740&auto=format&fit=crop')"}}
+      />
+      <div className="absolute inset-0 w-full h-full bg-background/80 backdrop-blur-sm z-0"/>
+      
+      <div className="max-w-md w-full space-y-8 relative z-10">
         <button 
           onClick={() => navigate(-1)} 
           className="absolute -top-4 -left-4 sm:-left-12 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-secondary transition-colors"
@@ -53,7 +59,7 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
-        <form className="mt-8 space-y-6 bg-secondary p-8 rounded-lg border border-border" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6 bg-secondary/80 p-8 rounded-lg border border-border" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <label htmlFor="email-address" className="block text-sm font-medium text-foreground mb-1">Email address</label>

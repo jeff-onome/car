@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { CARS } from '../constants';
-import { FuelIcon, GaugeIcon, TransmissionIcon, ArrowLeftIcon } from '../components/IconComponents';
+import { FuelIcon, GaugeIcon, TransmissionIcon, ArrowLeftIcon, HeartIcon } from '../components/IconComponents';
+import { useUserData } from '../hooks/useUserData';
 
 const CarDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const car = CARS.find(c => c.id === parseInt(id || ''));
   const [mainImage, setMainImage] = useState(car?.images[0]);
   const navigate = useNavigate();
+  const { user, favorites, toggleFavorite, addRecentlyViewed } = useUserData();
+
+  useEffect(() => {
+    if (car) {
+      setMainImage(car.images[0]);
+      addRecentlyViewed(car.id);
+    }
+  }, [car, addRecentlyViewed]);
 
   if (!car) {
     return (
@@ -17,6 +26,8 @@ const CarDetail: React.FC = () => {
       </div>
     );
   }
+  
+  const isFavorite = favorites.includes(car.id);
 
   return (
     <div className="bg-background pt-12 pb-24 sm:pt-16 sm:pb-32">
@@ -61,17 +72,37 @@ const CarDetail: React.FC = () => {
             <h3 className="text-xl font-semibold text-foreground mt-6 mb-2">Description</h3>
             <p className="text-muted-foreground mb-6">{car.description}</p>
             
+            {car.images[1] && (
+              <img 
+                src={car.images[1]} 
+                alt={`${car.make} ${car.model} interior`} 
+                className="w-full h-auto rounded-lg shadow-xl my-8 object-cover" 
+              />
+            )}
+
             <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">Key Features</h3>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-8">
               {car.features.map((feature, index) => <li key={index}>{feature}</li>)}
             </ul>
 
-            <button
-                onClick={() => alert(`Ordering ${car.make} ${car.model}...`)}
-                className="w-full bg-primary text-primary-foreground font-bold py-4 px-6 rounded-lg hover:bg-primary/90 transition-colors duration-300 text-lg"
-              >
-                Order Now
-            </button>
+            <div className="flex space-x-4">
+               <button
+                  onClick={() => alert(`Scheduling test drive for ${car.make} ${car.model}...`)}
+                  className="w-full bg-primary text-primary-foreground font-bold py-4 px-6 rounded-lg hover:bg-primary/90 transition-colors duration-300 text-lg"
+                >
+                  Schedule Test Drive
+              </button>
+              {user && (
+                <button
+                    onClick={() => toggleFavorite(car.id)}
+                    title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                    className={`p-4 rounded-lg transition-colors duration-200 border ${isFavorite ? 'bg-red-500/10 text-red-500 border-red-500' : 'bg-secondary text-muted-foreground border-border hover:bg-secondary/80'}`}
+                    aria-pressed={isFavorite}
+                  >
+                    <HeartIcon className={`h-6 w-6 ${isFavorite ? 'fill-current' : ''}`} />
+                  </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

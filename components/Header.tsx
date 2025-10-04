@@ -37,6 +37,8 @@ const Header: React.FC = () => {
     }`;
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const closeUserMenu = () => setIsUserMenuOpen(false);
+
 
   const navLinks = (
     <>
@@ -50,7 +52,7 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
+    closeUserMenu();
   }
 
   return (
@@ -86,6 +88,9 @@ const Header: React.FC = () => {
                       <p className="text-sm text-muted-foreground truncate" title={user.email}>{user.email}</p>
                     </div>
                     <div className="py-1">
+                      <Link to="/profile" onClick={closeUserMenu} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
+                        My Profile
+                      </Link>
                       <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
                         Logout
                       </button>
@@ -99,9 +104,9 @@ const Header: React.FC = () => {
              <ThemeToggle />
              <div className="relative ml-2">
                 {user ? (
-                   <button onClick={() => { handleLogout(); closeMobileMenu(); }} className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-secondary-foreground">
+                   <Link to="/profile" onClick={closeMobileMenu} className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-secondary-foreground">
                     <UserIcon className="h-6 w-6" />
-                  </button>
+                  </Link>
                 ) : (
                   <Link to="/login" onClick={closeMobileMenu} className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-secondary-foreground">
                     <UserIcon className="h-6 w-6" />
@@ -130,6 +135,14 @@ const Header: React.FC = () => {
              <NavLink to="/about" className={mobileNavLinkClasses} onClick={closeMobileMenu}>About</NavLink>
              <NavLink to="/faq" className={mobileNavLinkClasses} onClick={closeMobileMenu}>FAQ</NavLink>
              <NavLink to="/contact" className={mobileNavLinkClasses} onClick={closeMobileMenu}>Contact</NavLink>
+             {user && (
+                <div className="border-t border-border pt-4 mt-4">
+                     <p className="px-3 py-2 text-sm font-semibold text-foreground">{user.fname} {user.lname}</p>
+                     <button onClick={() => { logout(); closeMobileMenu(); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:bg-secondary hover:text-secondary-foreground">
+                        Logout
+                      </button>
+                </div>
+             )}
           </div>
         </div>
       )}
