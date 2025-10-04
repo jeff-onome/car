@@ -4,7 +4,7 @@ const About: React.FC = () => {
   return (
     <div className="bg-background text-foreground">
       <div className="relative h-80">
-        <img src="https://loremflickr.com/1600/400/car-dealership,showroom?lock=300" alt="Our dealership" className="absolute h-full w-full object-cover"/>
+        <img src="https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?q=80&w=1740&auto=format&fit=crop" alt="Our dealership" className="absolute h-full w-full object-cover"/>
         <div className="absolute h-full w-full bg-background/70 flex items-center justify-center">
           <h1 className="text-5xl font-bold text-foreground tracking-tight">About AutoSphere</h1>
         </div>
@@ -22,7 +22,7 @@ const About: React.FC = () => {
             </p>
           </div>
           <div>
-            <img src="https://loremflickr.com/600/400/people,team,office?lock=301" alt="AutoSphere Team" className="rounded-lg shadow-xl"/>
+            <img src="https://plus.unsplash.com/premium_photo-1661767467261-4a4bed92a507?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dGVhbXxlbnwwfHwwfHx8MA%3D%3D" alt="AutoSphere Team" className="rounded-lg shadow-xl"/>
           </div>
         </div>
 
