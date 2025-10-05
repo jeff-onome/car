@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCars } from '../../hooks/useCars';
-import { PencilIcon, TrashIcon, PlusCircleIcon } from '../../components/IconComponents';
+import { PencilIcon, TrashIcon, PlusCircleIcon, SearchIcon } from '../../components/IconComponents';
 
 const ManageListings: React.FC = () => {
   const { user } = useAuth();
   const { cars, deleteCar } = useCars();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const dealerCars = cars.filter(car => car.dealerId === user?.email);
+  const dealerCars = useMemo(() => cars.filter(car => car.dealerId === user?.email), [cars, user]);
+
+  const filteredCars = useMemo(() => 
+    dealerCars.filter(car => 
+      `${car.make} ${car.model} ${car.year}`.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [dealerCars, searchTerm]);
 
   const handleDelete = (carId: number, carName: string) => {
     if (window.confirm(`Are you sure you want to delete the listing for ${carName}?`)) {
@@ -19,12 +25,26 @@ const ManageListings: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <h1 className="text-3xl font-bold text-foreground">My Listings</h1>
-        <Link to="/dealer/listings/add" className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">
-            <PlusCircleIcon className="w-5 h-5"/>
-            <span>Add Vehicle</span>
-        </Link>
+        <div className="flex items-center gap-4">
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search listings..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-64 bg-background border border-input rounded-md pl-10 pr-4 py-2 focus:ring-ring focus:border-ring text-foreground"
+                />
+            </div>
+            <Link to="/dealer/listings/add" className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                <PlusCircleIcon className="w-5 h-5"/>
+                <span className="hidden sm:inline">Add Vehicle</span>
+            </Link>
+        </div>
       </div>
 
       <div className="bg-secondary rounded-lg border border-border overflow-hidden">
@@ -39,8 +59,8 @@ const ManageListings: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {dealerCars.length > 0 ? (
-                dealerCars.map(car => (
+              {filteredCars.length > 0 ? (
+                filteredCars.map(car => (
                   <tr key={car.id} className="border-t border-border">
                     <td className="p-4">
                       <div className="flex items-center gap-4">
@@ -72,7 +92,7 @@ const ManageListings: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={4} className="text-center p-8 text-muted-foreground">
-                    You haven't listed any vehicles yet.
+                    {searchTerm ? `No listings found for "${searchTerm}".` : "You haven't listed any vehicles yet."}
                   </td>
                 </tr>
               )}

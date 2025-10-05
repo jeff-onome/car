@@ -272,3 +272,9 @@ export const GlobeAltIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => 
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c.506 0 1.007-.034 1.5-.1M12 3c.506 0 1.007.034 1.5.1m0 0a9.005 9.005 0 015.716 2.653m-12.932 0a9.005 9.005 0 005.716-2.653m12.932 0A9.006 9.006 0 0121 12c0 .506-.034 1.007-.1 1.5m-19.8 0A9.006 9.006 0 003 12c0-.506.034-1.007.1-1.5M12 3v18m9-9H3" />
   </svg>
 );
+
+export const SearchIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+  </svg>
+);

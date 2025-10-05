@@ -9,7 +9,7 @@ import type { Car, TestDrive, Purchase, User } from '../types';
 import { 
     CalendarIcon, CheckCircleIcon, ClockIcon, XCircleIcon, CompareIcon, HeartIcon,
     SettingsIcon, KeyIcon, ShieldCheckIcon, BellIcon, LogOutIcon, GoogleIcon, FacebookIcon, ReceiptIcon,
-    MenuIcon, XIcon, InformationCircleIcon, UploadIcon, MapPinIcon
+    MenuIcon, XIcon, InformationCircleIcon, UploadIcon, MapPinIcon, SearchIcon
 } from '../components/IconComponents';
 
 type Tab = 'garage' | 'compare' | 'drives' | 'purchases' | 'verification' | 'settings';
@@ -173,7 +173,14 @@ const UserProfile: React.FC = () => {
 
 const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[], cars: Car[] }> = ({ favoriteCars, recentlyViewedCars, cars }) => {
     const { favorites, recentlyViewed } = useUserData();
+    const [searchTerm, setSearchTerm] = useState('');
 
+    const filterCars = (carsToFilter: Car[]) => 
+        carsToFilter.filter(car => `${car.make} ${car.model}`.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const filteredFavoriteCars = filterCars(favoriteCars);
+    const filteredRecentlyViewedCars = filterCars(recentlyViewedCars);
+    
     const dummyFavoriteCars = useMemo(() => [cars[1], cars[3]].filter(Boolean), [cars]);
     const dummyRecentlyViewedCars = useMemo(() => [cars[0], cars[2]].filter(Boolean), [cars]);
 
@@ -182,6 +189,18 @@ const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[], 
 
     return (
         <div>
+            <div className="mb-6 relative">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search your garage..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-72 bg-secondary border border-input rounded-md pl-10 pr-4 py-2 focus:ring-ring focus:border-ring text-foreground"
+                />
+            </div>
             <Section title="Favorite Vehicles">
                 {showDummyFavorites ? (
                     <>
@@ -189,7 +208,7 @@ const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[], 
                         <CarGrid cars={dummyFavoriteCars} />
                     </>
                 ) : (
-                    <CarGrid cars={favoriteCars} />
+                    <CarGrid cars={filteredFavoriteCars} />
                 )}
             </Section>
             <Section title="Recently Viewed">
@@ -199,7 +218,7 @@ const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[], 
                         <CarGrid cars={dummyRecentlyViewedCars} />
                     </>
                 ) : (
-                    <CarGrid cars={recentlyViewedCars} />
+                    <CarGrid cars={filteredRecentlyViewedCars} />
                 )}
             </Section>
         </div>
@@ -247,67 +266,123 @@ const CompareContent: React.FC<{ compareCars: Car[], cars: Car[], clearCompare: 
     );
 };
 
-const TestDrivesContent: React.FC<{testDrives: TestDrive[], cars: Car[], cancelTestDrive: (id: number) => void, onReschedule: (drive: TestDrive) => void}> = ({ testDrives, cars, cancelTestDrive, onReschedule }) => (
-    <Section title="My Test Drives">
-        {testDrives.length > 0 ? (
-            <div className="space-y-4">
-                {testDrives.sort((a,b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()).map(drive => {
-                    const car = cars.find(c => c.id === drive.carId);
-                    if (!car) return null;
-                    const isUpcoming = new Date(drive.bookingDate) > new Date();
-                    return (
-                        <div key={drive.id} className="bg-secondary p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <img src={car.images[0]} alt={car.make} className="w-full sm:w-32 h-24 object-cover rounded-md"/>
-                            <div className="flex-grow">
-                                <h3 className="font-bold text-foreground">{car.make} {car.model}</h3>
-                                <p className="text-sm text-muted-foreground">{drive.location}</p>
-                                <p className="text-sm text-muted-foreground">{new Date(drive.bookingDate).toLocaleString()}</p>
-                                <StatusBadge status={drive.status} />
-                            </div>
-                            {(isUpcoming && (drive.status === 'Approved' || drive.status === 'Pending')) && (
-                                <div className="flex space-x-2 self-start sm:self-center">
-                                    <button onClick={() => onReschedule(drive)} className="text-xs px-3 py-1 rounded-md bg-background hover:bg-border transition-colors">Reschedule</button>
-                                    <button onClick={() => cancelTestDrive(drive.id)} className="text-xs px-3 py-1 rounded-md bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors">Cancel</button>
-                                </div>
-                            )}
-                        </div>
-                    )
-                })}
-            </div>
-        ) : (
-            <EmptyState message="You have no upcoming or past test drives." />
-        )}
-    </Section>
-);
+const TestDrivesContent: React.FC<{testDrives: TestDrive[], cars: Car[], cancelTestDrive: (id: number) => void, onReschedule: (drive: TestDrive) => void}> = ({ testDrives, cars, cancelTestDrive, onReschedule }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    const drivesWithCarData = useMemo(() => 
+        testDrives.map(drive => {
+            const car = cars.find(c => c.id === drive.carId);
+            return { ...drive, car };
+        }).filter(drive => drive.car),
+    [testDrives, cars]);
 
-const PurchaseHistoryContent: React.FC<{ purchases: Purchase[], cars: Car[], onSelectPurchase: (p: Purchase) => void }> = ({ purchases, cars, onSelectPurchase }) => (
-    <Section title="Purchase History">
-        {purchases.length > 0 ? (
-            <div className="space-y-4">
-                {purchases.sort((a,b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()).map(purchase => {
-                    const car = cars.find(c => c.id === purchase.carId);
-                    if (!car) return null;
-                    return (
-                        <div key={purchase.id} className="bg-secondary p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <img src={car.images[0]} alt={car.make} className="w-full sm:w-32 h-24 object-cover rounded-md"/>
-                            <div className="flex-grow">
-                                <h3 className="font-bold text-foreground">{car.make} {car.model}</h3>
-                                <p className="text-sm text-muted-foreground">Purchased on: {new Date(purchase.purchaseDate).toLocaleDateString()}</p>
-                                <p className="text-sm text-muted-foreground">From: {purchase.dealership}</p>
-                                <p className="text-md font-semibold text-foreground mt-1">Price: ₦{purchase.pricePaid.toLocaleString()}</p>
-                            </div>
-                            <button onClick={() => onSelectPurchase(purchase)} className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 self-start sm:self-center">
-                                View Invoice
-                            </button>
-                        </div>
-                    )
-                })}
+    const filteredDrives = useMemo(() =>
+        drivesWithCarData.filter(drive =>
+            drive.car && `${drive.car.make} ${drive.car.model} ${drive.location}`.toLowerCase().includes(searchTerm.toLowerCase())
+        ),
+    [drivesWithCarData, searchTerm]);
+
+    return (
+        <Section title="My Test Drives">
+            <div className="mb-6 relative">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search by car or location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-72 bg-secondary border border-input rounded-md pl-10 pr-4 py-2 focus:ring-ring focus:border-ring text-foreground"
+                />
             </div>
-        ) : (
-            <EmptyState message="You have not purchased any vehicles yet." />
-        )}
-    </Section>
-);
+            {filteredDrives.length > 0 ? (
+                <div className="space-y-4">
+                    {filteredDrives.sort((a,b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()).map(drive => {
+                        if (!drive.car) return null;
+                        const isUpcoming = new Date(drive.bookingDate) > new Date();
+                        return (
+                            <div key={drive.id} className="bg-secondary p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <img src={drive.car.images[0]} alt={drive.car.make} className="w-full sm:w-32 h-24 object-cover rounded-md"/>
+                                <div className="flex-grow">
+                                    <h3 className="font-bold text-foreground">{drive.car.make} {drive.car.model}</h3>
+                                    <p className="text-sm text-muted-foreground">{drive.location}</p>
+                                    <p className="text-sm text-muted-foreground">{new Date(drive.bookingDate).toLocaleString()}</p>
+                                    <StatusBadge status={drive.status} />
+                                </div>
+                                {(isUpcoming && (drive.status === 'Approved' || drive.status === 'Pending')) && (
+                                    <div className="flex space-x-2 self-start sm:self-center">
+                                        <button onClick={() => onReschedule(drive)} className="text-xs px-3 py-1 rounded-md bg-background hover:bg-border transition-colors">Reschedule</button>
+                                        <button onClick={() => cancelTestDrive(drive.id)} className="text-xs px-3 py-1 rounded-md bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-colors">Cancel</button>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            ) : (
+                <EmptyState message={searchTerm ? `No test drives found for "${searchTerm}".` : "You have no upcoming or past test drives."} />
+            )}
+        </Section>
+    );
+};
+
+const PurchaseHistoryContent: React.FC<{ purchases: Purchase[], cars: Car[], onSelectPurchase: (p: Purchase) => void }> = ({ purchases, cars, onSelectPurchase }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const purchasesWithCarData = useMemo(() =>
+        purchases.map(purchase => {
+            const car = cars.find(c => c.id === purchase.carId);
+            return { ...purchase, car };
+        }).filter(purchase => purchase.car),
+    [purchases, cars]);
+
+    const filteredPurchases = useMemo(() =>
+        purchasesWithCarData.filter(purchase =>
+            purchase.car && `${purchase.car.make} ${purchase.car.model} ${purchase.dealership}`.toLowerCase().includes(searchTerm.toLowerCase())
+        ),
+    [purchasesWithCarData, searchTerm]);
+
+    return (
+        <Section title="Purchase History">
+            <div className="mb-6 relative">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search by car or dealership..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-72 bg-secondary border border-input rounded-md pl-10 pr-4 py-2 focus:ring-ring focus:border-ring text-foreground"
+                />
+            </div>
+            {filteredPurchases.length > 0 ? (
+                <div className="space-y-4">
+                    {filteredPurchases.sort((a,b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()).map(purchase => {
+                        if (!purchase.car) return null;
+                        return (
+                            <div key={purchase.id} className="bg-secondary p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <img src={purchase.car.images[0]} alt={purchase.car.make} className="w-full sm:w-32 h-24 object-cover rounded-md"/>
+                                <div className="flex-grow">
+                                    <h3 className="font-bold text-foreground">{purchase.car.make} {purchase.car.model}</h3>
+                                    <p className="text-sm text-muted-foreground">Purchased on: {new Date(purchase.purchaseDate).toLocaleDateString()}</p>
+                                    <p className="text-sm text-muted-foreground">From: {purchase.dealership}</p>
+                                    <p className="text-md font-semibold text-foreground mt-1">Price: ₦{purchase.pricePaid.toLocaleString()}</p>
+                                </div>
+                                <button onClick={() => onSelectPurchase(purchase)} className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 self-start sm:self-center">
+                                    View Invoice
+                                </button>
+                            </div>
+                        )
+                    })}
+                </div>
+            ) : (
+                <EmptyState message={searchTerm ? `No purchases found for "${searchTerm}".` : "You have not purchased any vehicles yet."} />
+            )}
+        </Section>
+    );
+};
 
 const InvoiceModal: React.FC<{ purchase: Purchase; cars: Car[]; onClose: () => void }> = ({ purchase, cars, onClose }) => {
     const car = cars.find(c => c.id === purchase.carId);
@@ -771,11 +846,16 @@ const Section: React.FC<{title: string, children: React.ReactNode}> = ({ title, 
     </div>
 );
 
-const CarGrid: React.FC<{ cars: Car[] }> = ({ cars }) => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {cars.map(car => <CarCard key={car.id} car={car} />)}
-    </div>
-);
+const CarGrid: React.FC<{ cars: Car[] }> = ({ cars }) => {
+    if (cars.length === 0) {
+        return <EmptyState message="No vehicles found." />;
+    }
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {cars.map(car => <CarCard key={car.id} car={car} />)}
+        </div>
+    );
+}
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
     <div className="text-center py-12 bg-secondary rounded-lg border border-border">

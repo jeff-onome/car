@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserManagement } from '../../hooks/useUserManagement';
 import { useCars } from '../../hooks/useCars';
-import { PencilIcon, TrashIcon, PlusCircleIcon, EyeIcon, LockClosedIcon, LockOpenIcon } from '../../components/IconComponents';
+import { PencilIcon, TrashIcon, PlusCircleIcon, EyeIcon, LockClosedIcon, LockOpenIcon, SearchIcon } from '../../components/IconComponents';
 import type { User } from '../../types';
 import Modal from '../../components/Modal';
 import KYCViewerModal from '../../components/KYCViewerModal';
@@ -11,6 +11,7 @@ const ManageUsers: React.FC = () => {
   const { users, deleteUser, updateUser } = useUserManagement();
   const { deleteCarsByDealer } = useCars();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     user: User | null;
@@ -18,6 +19,10 @@ const ManageUsers: React.FC = () => {
   }>({ isOpen: false, user: null, action: null });
   const [kycViewerState, setKycViewerState] = useState<{ isOpen: boolean; user: User | null }>({ isOpen: false, user: null });
 
+  const filteredUsers = useMemo(() => 
+    users.filter(user => 
+      `${user.fname} ${user.lname} ${user.email}`.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [users, searchTerm]);
 
   const openModal = (user: User, action: 'approve' | 'reject' | 'delete' | 'block' | 'unblock') => {
     setModalState({ isOpen: true, user, action });
@@ -83,12 +88,26 @@ const ManageUsers: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <h1 className="text-3xl font-bold text-foreground">Manage Users</h1>
-        <Link to="/superadmin/users/add" className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">
-            <PlusCircleIcon className="w-5 h-5"/>
-            <span>Add User</span>
-        </Link>
+        <div className="flex items-center gap-4">
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-64 bg-background border border-input rounded-md pl-10 pr-4 py-2 focus:ring-ring focus:border-ring text-foreground"
+                />
+            </div>
+            <Link to="/superadmin/users/add" className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                <PlusCircleIcon className="w-5 h-5"/>
+                <span className="hidden sm:inline">Add User</span>
+            </Link>
+        </div>
       </div>
 
       <div className="bg-secondary rounded-lg border border-border overflow-hidden">
@@ -105,8 +124,8 @@ const ManageUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {users.length > 0 ? (
-                users.map(user => (
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map(user => (
                   <tr key={user.email} className="border-t border-border">
                     <td className="p-4 font-bold text-foreground">{user.fname} {user.lname}</td>
                     <td className="p-4 text-muted-foreground">{user.email}</td>
@@ -154,7 +173,7 @@ const ManageUsers: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={6} className="text-center p-8 text-muted-foreground">
-                    There are no registered users on the platform.
+                    {searchTerm ? `No users found for "${searchTerm}".` : "There are no registered users on the platform."}
                   </td>
                 </tr>
               )}
