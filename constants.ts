@@ -1,6 +1,8 @@
 
 import type { Car, FaqItem, Testimonial, TestDrive, Purchase } from './types';
 
+const DEALER_ID = 'dealer@autosphere.com';
+
 export const CARS: Car[] = [
   {
     id: 1,
@@ -22,6 +24,7 @@ export const CARS: Car[] = [
     description: 'The Tesla Model S Plaid is the quickest accelerating car in production today. It combines cutting-edge technology with breathtaking performance and a spacious, luxurious interior.',
     condition: 'Used',
     tag: 'Trending',
+    dealerId: DEALER_ID,
   },
   {
     id: 2,
@@ -43,6 +46,7 @@ export const CARS: Car[] = [
     description: 'Experience the raw power and iconic style of the 2024 Ford Mustang GT. With a roaring V8 engine and a driver-focused cockpit, it delivers pure exhilaration on every drive.',
     condition: 'New',
     tag: 'New Arrival',
+    dealerId: DEALER_ID,
   },
   {
     id: 3,
@@ -64,6 +68,7 @@ export const CARS: Car[] = [
     description: 'The Porsche 911 is the quintessential sports car. The Carrera S offers a perfect blend of high performance, everyday usability, and timeless design that turns heads everywhere.',
     condition: 'Used',
     tag: 'Trending',
+    dealerId: DEALER_ID,
   },
   {
     id: 4,
@@ -85,6 +90,7 @@ export const CARS: Car[] = [
     description: 'Dependable, efficient, and versatile. The Toyota RAV4 Hybrid is the ideal SUV for families and adventurers alike, offering excellent fuel economy and Toyota\'s legendary reliability.',
     condition: 'New',
     tag: 'Best Deal',
+    dealerId: DEALER_ID,
   },
   {
     id: 5,
@@ -105,6 +111,7 @@ export const CARS: Car[] = [
     ],
     description: 'The BMW M3 Competition is the ultimate driving machine. It offers staggering performance, track-ready handling, and a luxurious cabin, making it a formidable high-performance sedan.',
     condition: 'Used',
+    dealerId: DEALER_ID,
   },
   {
     id: 6,
@@ -126,6 +133,7 @@ export const CARS: Car[] = [
     description: 'The Rivian R1T is an all-electric adventure vehicle. With its incredible off-road capability, blistering on-road acceleration, and innovative features, it redefines what a pickup truck can be.',
     condition: 'Used',
     tag: 'Trending',
+    dealerId: DEALER_ID,
   },
   {
     id: 7,
@@ -147,6 +155,7 @@ export const CARS: Car[] = [
     description: 'The Honda Civic Type R is a masterpiece of front-wheel-drive performance. It delivers an engaging driving experience with sharp handling, a powerful engine, and an aggressive design.',
     condition: 'New',
     tag: 'New Arrival',
+    dealerId: DEALER_ID,
   },
   {
     id: 8,
@@ -167,6 +176,7 @@ export const CARS: Car[] = [
     ],
     description: 'An icon of off-road capability and ultimate luxury. The Mercedes-AMG G 63 combines military-grade toughness with handcrafted comfort and an earth-shattering V8 engine.',
     condition: 'Used',
+    dealerId: DEALER_ID,
   }
 ];
 

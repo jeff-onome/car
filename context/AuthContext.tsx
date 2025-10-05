@@ -6,6 +6,7 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   register: (user: User) => void;
+  updateUser: (updatedData: Partial<User>) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,7 +19,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
       const storedUser = localStorage.getItem('user');
-      return storedUser ? JSON.parse(storedUser) : null;
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        // Ensure user object has all required fields from the User type
+        return {
+          role: 'customer',
+          verificationStatus: 'Unverified',
+          address: null,
+          kycDocument: null,
+          status: 'Active',
+          ...parsedUser,
+        };
+      }
+      return null;
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
       return null;
@@ -26,8 +39,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   const login = (userData: User) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    // When logging in, merge stored user data with defaults to prevent missing fields
+    const fullUserData = {
+      role: 'customer' as const,
+      verificationStatus: 'Unverified' as const,
+      address: null,
+      kycDocument: null,
+      status: 'Active' as const,
+      ...userData,
+    };
+    localStorage.setItem('user', JSON.stringify(fullUserData));
+    setUser(fullUserData);
   };
 
   const logout = () => {
@@ -40,9 +62,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Here, we'll just log the user in directly after "registering".
     login(userData);
   };
+  
+  const updateUser = (updatedData: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      const newUser = { ...prevUser, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(newUser));
+      return newUser;
+    });
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

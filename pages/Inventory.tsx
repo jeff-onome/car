@@ -1,17 +1,42 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import CarCard from '../components/CarCard';
-import { CARS } from '../constants';
+import { useCars } from '../hooks/useCars';
+import { useSiteContent } from '../hooks/useSiteContent';
 import type { Car } from '../types';
 
+const sortLabels: Record<string, string> = {
+  'price-asc': 'Price: Low to High',
+  'price-desc': 'Price: High to Low',
+  'year-desc': 'Year: Newest First',
+  'mileage-asc': 'Mileage: Lowest First',
+};
+
 const Inventory: React.FC = () => {
-  const [cars, setCars] = useState<Car[]>(CARS);
+  const { cars } = useCars();
+  const { siteContent } = useSiteContent();
+  const { sortOptions, conditionFilters } = siteContent.inventorySettings;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMake, setFilterMake] = useState('all');
   const [filterCondition, setFilterCondition] = useState('all');
-  const [sortOrder, setSortOrder] = useState('price-asc');
+  const [sortOrder, setSortOrder] = useState(sortOptions[0] || 'price-asc');
 
-  const makes = useMemo(() => ['all', ...Array.from(new Set(CARS.map(car => car.make)))], []);
-  const conditions = ['all', 'New', 'Used'];
+  const makes = useMemo(() => ['all', ...Array.from(new Set(cars.map(car => car.make)))], [cars]);
+  const conditions = useMemo(() => ['all', ...conditionFilters], [conditionFilters]);
+
+  useEffect(() => {
+    // If the currently selected sort order is no longer available, reset it
+    if (!sortOptions.includes(sortOrder)) {
+      setSortOrder(sortOptions[0] || 'price-asc');
+    }
+  }, [sortOptions, sortOrder]);
+
+  useEffect(() => {
+    // If the currently selected condition is no longer available, reset it
+    if (!conditions.includes(filterCondition)) {
+      setFilterCondition('all');
+    }
+  }, [conditions, filterCondition]);
 
   const filteredAndSortedCars = useMemo(() => {
     let filteredCars = cars.filter(car => 
@@ -50,7 +75,7 @@ const Inventory: React.FC = () => {
         </div>
 
         {/* Filters and Sorting */}
-        <div className="bg-secondary p-4 rounded-lg mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="bg-secondary p-4 rounded-lg mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
           <input
             type="text"
             placeholder="Search by make or model..."
@@ -75,16 +100,17 @@ const Inventory: React.FC = () => {
               <option key={condition} value={condition}>{condition === 'all' ? 'All Conditions' : condition}</option>
             ))}
           </select>
-          <select 
-            className="w-full bg-background text-foreground border border-input rounded-md p-2 focus:ring-ring focus:border-ring"
-            onChange={(e) => setSortOrder(e.target.value)}
-            value={sortOrder}
-          >
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="year-desc">Year: Newest First</option>
-            <option value="mileage-asc">Mileage: Lowest First</option>
-          </select>
+          {sortOptions.length > 0 && (
+            <select 
+              className="w-full bg-background text-foreground border border-input rounded-md p-2 focus:ring-ring focus:border-ring"
+              onChange={(e) => setSortOrder(e.target.value)}
+              value={sortOrder}
+            >
+              {sortOptions.map(option => (
+                <option key={option} value={option}>{sortLabels[option]}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Car Grid */}

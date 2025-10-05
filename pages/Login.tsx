@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowLeftIcon } from '../components/IconComponents';
+import { ArrowLeftIcon, InformationCircleIcon } from '../components/IconComponents';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,6 +21,10 @@ const Login: React.FC = () => {
         const userExists = storedUsers.find((u: any) => u.email === email && u.password === password);
 
         if (userExists) {
+            if (userExists.status === 'Blocked') {
+                setError('Your account has been blocked. Please contact support.');
+                return;
+            }
             const { password, ...userToLogin } = userExists;
             login(userToLogin);
             navigate('/');
@@ -59,6 +63,19 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        <div className="bg-blue-500/10 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-md flex gap-3" role="alert">
+          <InformationCircleIcon className="h-6 w-6 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Demo Accounts</p>
+            <div className="text-sm space-y-1 mt-1">
+              <p><b>Super Admin:</b> superadmin@autosphere.com</p>
+              <p><b>Dealer:</b> dealer@autosphere.com</p>
+              <p><b>Password:</b> password123</p>
+            </div>
+          </div>
+        </div>
+
         <form className="mt-8 space-y-6 bg-secondary/80 p-8 rounded-lg border border-border" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>

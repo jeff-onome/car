@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CarIcon, FacebookIcon, TwitterIcon, InstagramIcon } from './IconComponents';
+import { useSiteContent } from '../hooks/useSiteContent';
 
 const Footer: React.FC = () => {
+  const { siteContent } = useSiteContent();
+
   return (
     <footer className="bg-secondary border-t border-border">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -10,7 +13,7 @@ const Footer: React.FC = () => {
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center space-x-2 text-foreground text-2xl font-bold mb-4">
                 <CarIcon className="h-8 w-8 text-accent" />
-                <span>AutoSphere</span>
+                <span>{siteContent.siteName}</span>
             </Link>
             <p className="text-muted-foreground text-sm">
               Your trusted partner in finding the perfect vehicle. Quality, transparency, and service you can rely on.
@@ -35,14 +38,14 @@ const Footer: React.FC = () => {
            <div className="col-span-2 md:col-span-1">
             <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase">Follow Us</h3>
             <div className="flex space-x-6 mt-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Facebook</span><FacebookIcon className="h-6 w-6" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Twitter</span><TwitterIcon className="h-6 w-6" /></a>
-              <a href="#" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Instagram</span><InstagramIcon className="h-6 w-6" /></a>
+              <a href={siteContent.socialHandles.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Facebook</span><FacebookIcon className="h-6 w-6" /></a>
+              <a href={siteContent.socialHandles.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Twitter</span><TwitterIcon className="h-6 w-6" /></a>
+              <a href={siteContent.socialHandles.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><span className="sr-only">Instagram</span><InstagramIcon className="h-6 w-6" /></a>
             </div>
           </div>
         </div>
         <div className="mt-8 border-t border-border pt-8 md:flex md:items-center md:justify-between">
-          <p className="text-base text-muted-foreground md:order-1">&copy; {new Date().getFullYear()} AutoSphere. All rights reserved.</p>
+          <p className="text-base text-muted-foreground md:order-1">&copy; {new Date().getFullYear()} {siteContent.siteName}. All rights reserved.</p>
         </div>
       </div>
     </footer>

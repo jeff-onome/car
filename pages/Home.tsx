@@ -1,32 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import CarCard from '../components/CarCard';
-import { CARS, TESTIMONIALS } from '../constants';
+import { TESTIMONIALS } from '../constants';
+import { useCars } from '../hooks/useCars';
 import { StarIcon, QuoteIcon } from '../components/IconComponents';
 import type { Car, Testimonial } from '../types';
 import PromoCar from '../components/PromoCar';
+import { useSiteContent } from '../hooks/useSiteContent';
 
-const Hero: React.FC = () => (
-  <div className="relative bg-secondary text-foreground py-20 lg:py-32">
-     <div 
-        className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-20" 
-        style={{backgroundImage: "url('https://images.unsplash.com/photo-1553440569-bcc63803a83d?q=80&w=1725&auto=format&fit=crop')"}}
-      ></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
-    <div className="container mx-auto px-6 text-center relative z-10">
-      <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-4">Find Your Next Dream Car</h1>
-      <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-        Explore our curated selection of high-quality new and pre-owned vehicles.
-      </p>
-      <Link 
-        to="/inventory" 
-        className="bg-accent text-accent-foreground font-bold py-3 px-8 rounded-full hover:bg-accent/90 transition-transform duration-300 transform hover:scale-105 text-lg"
-      >
-        Browse Inventory
-      </Link>
-    </div>
-  </div>
-);
+const Hero: React.FC = () => {
+    const { siteContent } = useSiteContent();
+    return (
+        <div className="relative bg-secondary text-foreground py-20 lg:py-32">
+            <div 
+                className="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-20" 
+                style={{backgroundImage: `url('${siteContent.hero.image}')`}}
+            ></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
+            <div className="container mx-auto px-6 text-center relative z-10">
+                <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-4">{siteContent.hero.title}</h1>
+                <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                    {siteContent.hero.subtitle}
+                </p>
+                <Link 
+                    to="/inventory" 
+                    className="bg-accent text-accent-foreground font-bold py-3 px-8 rounded-full hover:bg-accent/90 transition-transform duration-300 transform hover:scale-105 text-lg"
+                >
+                    Browse Inventory
+                </Link>
+            </div>
+        </div>
+    );
+};
 
 interface CarHighlightSectionProps {
   title: string;
@@ -113,11 +118,15 @@ const WhyChooseUs: React.FC = () => (
 
 
 const Home: React.FC = () => {
-  const newArrivals = CARS.filter(car => car.tag === 'New Arrival').slice(0, 3);
-  const bestDeals = CARS.filter(car => car.tag === 'Best Deal').slice(0, 3);
-  const trendingCars = CARS.filter(car => car.tag === 'Trending').slice(0, 3);
-  const usedCars = CARS.filter(car => car.condition === 'Used').slice(0, 3);
-  const promoCar = CARS.find(car => car.id === 5); // BMW M3 Competition
+  const { cars } = useCars();
+  const { siteContent } = useSiteContent();
+
+  const newArrivals = cars.filter(car => siteContent.newArrivalsCarIds.includes(car.id));
+  const bestDeals = cars.filter(car => siteContent.bestDealsCarIds.includes(car.id));
+  const trendingCars = cars.filter(car => siteContent.trendingCarsCarIds.includes(car.id));
+  const usedCars = cars.filter(car => siteContent.usedCarsCarIds.includes(car.id));
+  const promoCarData = cars.find(car => car.id === siteContent.dealOfTheWeekCarId);
+
 
   return (
     <div>
@@ -126,7 +135,7 @@ const Home: React.FC = () => {
       <CarHighlightSection title="Best Deals" cars={bestDeals} />
       <CarHighlightSection title="Trending Cars" cars={trendingCars} />
       <CarHighlightSection title="Quality Pre-Owned" cars={usedCars} />
-      {promoCar && <PromoCar car={promoCar} />}
+      {promoCarData && <PromoCar car={promoCarData} />}
       <Testimonials />
       <WhyChooseUs />
     </div>

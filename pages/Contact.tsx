@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSiteContent } from '../hooks/useSiteContent';
 
 const ContactForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,6 +39,9 @@ const ContactForm: React.FC = () => {
 
 
 const Contact: React.FC = () => {
+    const { siteContent } = useSiteContent();
+    const { contactInfo } = siteContent;
+
   return (
     <div className="bg-background py-16 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,14 +57,14 @@ const Contact: React.FC = () => {
             </div>
             <div className="text-foreground">
                 <h3 className="text-2xl font-bold text-foreground mb-4">Our Location</h3>
-                <p className="mb-2 text-muted-foreground">123 Auto Drive, Velocity City, 45678</p>
-                <p className="mb-2 text-muted-foreground">Phone: (555) 123-4567</p>
-                <p className="text-muted-foreground">Email: contact@autosphere.com</p>
+                <p className="mb-2 text-muted-foreground">{contactInfo.address}</p>
+                <p className="mb-2 text-muted-foreground">Phone: {contactInfo.phone}</p>
+                <p className="text-muted-foreground">Email: {contactInfo.email}</p>
 
                 <h3 className="text-2xl font-bold text-foreground mt-8 mb-4">Business Hours</h3>
-                <p className="text-muted-foreground">Monday - Friday: 9:00 AM - 7:00 PM</p>
-                <p className="text-muted-foreground">Saturday: 10:00 AM - 6:00 PM</p>
-                <p className="text-muted-foreground">Sunday: Closed</p>
+                <p className="text-muted-foreground">Monday - Friday: {contactInfo.hours.week}</p>
+                <p className="text-muted-foreground">Saturday: {contactInfo.hours.saturday}</p>
+                <p className="text-muted-foreground">Sunday: {contactInfo.hours.sunday}</p>
 
                 <div className="mt-8">
                     <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden bg-muted">

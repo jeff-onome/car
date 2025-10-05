@@ -3,11 +3,13 @@ import { NavLink, Link } from 'react-router-dom';
 import { CarIcon, MenuIcon, XIcon, UserIcon } from './IconComponents';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../hooks/useAuth';
+import { useSiteContent } from '../hooks/useSiteContent';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { siteContent } = useSiteContent();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +49,12 @@ const Header: React.FC = () => {
       <NavLink to="/about" className={navLinkClasses}>About</NavLink>
       <NavLink to="/faq" className={navLinkClasses}>FAQ</NavLink>
       <NavLink to="/contact" className={navLinkClasses}>Contact</NavLink>
+      {user?.role === 'dealer' && (
+          <NavLink to="/dealer/dashboard" className={navLinkClasses}>Dealer Portal</NavLink>
+      )}
+      {user?.role === 'superadmin' && (
+          <NavLink to="/superadmin/dashboard" className={navLinkClasses}>Super Admin</NavLink>
+      )}
     </>
   );
 
@@ -62,7 +70,7 @@ const Header: React.FC = () => {
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center space-x-2 text-foreground text-2xl font-bold">
               <CarIcon className="h-8 w-8 text-accent" />
-              <span>AutoSphere</span>
+              <span>{siteContent.siteName}</span>
             </Link>
           </div>
           <div className="hidden md:flex items-center">
@@ -91,6 +99,16 @@ const Header: React.FC = () => {
                       <Link to="/profile" onClick={closeUserMenu} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
                         My Profile
                       </Link>
+                      {user.role === 'dealer' && (
+                        <Link to="/dealer/dashboard" onClick={closeUserMenu} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
+                          Dealer Portal
+                        </Link>
+                      )}
+                       {user.role === 'superadmin' && (
+                        <Link to="/superadmin/dashboard" onClick={closeUserMenu} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
+                          Super Admin
+                        </Link>
+                      )}
                       <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-secondary">
                         Logout
                       </button>
@@ -135,6 +153,12 @@ const Header: React.FC = () => {
              <NavLink to="/about" className={mobileNavLinkClasses} onClick={closeMobileMenu}>About</NavLink>
              <NavLink to="/faq" className={mobileNavLinkClasses} onClick={closeMobileMenu}>FAQ</NavLink>
              <NavLink to="/contact" className={mobileNavLinkClasses} onClick={closeMobileMenu}>Contact</NavLink>
+             {user?.role === 'dealer' && (
+                <NavLink to="/dealer/dashboard" className={mobileNavLinkClasses} onClick={closeMobileMenu}>Dealer Portal</NavLink>
+             )}
+             {user?.role === 'superadmin' && (
+                <NavLink to="/superadmin/dashboard" className={mobileNavLinkClasses} onClick={closeMobileMenu}>Super Admin</NavLink>
+             )}
              {user && (
                 <div className="border-t border-border pt-4 mt-4">
                      <p className="px-3 py-2 text-sm font-semibold text-foreground">{user.fname} {user.lname}</p>

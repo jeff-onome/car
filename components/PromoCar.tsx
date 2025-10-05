@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Car } from '../types';
 import { useCountdown } from '../hooks/useCountdown';
+import { useCars } from '../hooks/useCars';
 
 interface PromoCarProps {
     car: Car;
@@ -18,6 +19,13 @@ const PromoCar: React.FC<PromoCarProps> = ({ car }) => {
     // Set promo to end 7 days from now
     const promoEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const { days, hours, minutes, seconds, isExpired } = useCountdown(promoEndDate);
+    const { cars } = useCars();
+    
+    const promoCar = cars.find(c => c.id === car.id);
+
+    if (!promoCar) {
+        return null;
+    }
 
     return (
         <div className="bg-secondary py-16 sm:py-24">
@@ -25,7 +33,7 @@ const PromoCar: React.FC<PromoCarProps> = ({ car }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div className="order-2 lg:order-1">
                         <h2 className="text-sm font-bold uppercase text-accent tracking-widest mb-2">Deal of the Week</h2>
-                        <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{car.make} {car.model}</h3>
+                        <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{promoCar.make} {promoCar.model}</h3>
                         <p className="text-lg text-muted-foreground mb-8">
                             Experience unparalleled performance and luxury. For a limited time, get this exceptional vehicle at an exclusive price. Don't miss out!
                         </p>
@@ -42,7 +50,7 @@ const PromoCar: React.FC<PromoCarProps> = ({ car }) => {
                         )}
                         
                         <Link 
-                            to={`/car/${car.id}`} 
+                            to={`/car/${promoCar.id}`} 
                             className="inline-block bg-accent text-accent-foreground font-bold py-4 px-10 rounded-lg hover:bg-accent/90 transition-transform duration-300 transform hover:scale-105 text-lg"
                         >
                             View Deal
@@ -50,8 +58,8 @@ const PromoCar: React.FC<PromoCarProps> = ({ car }) => {
                     </div>
                     <div className="order-1 lg:order-2">
                          <img 
-                            src={car.images[0]} 
-                            alt={`${car.make} ${car.model}`} 
+                            src={promoCar.images[0]} 
+                            alt={`${promoCar.make} ${promoCar.model}`} 
                             className="w-full h-auto object-cover rounded-lg shadow-2xl"
                         />
                     </div>

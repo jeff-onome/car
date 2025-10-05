@@ -1,0 +1,65 @@
+
+import type { StoredUser } from '../context/UserManagementContext';
+
+export const INITIAL_USERS: StoredUser[] = [
+    {
+        fname: 'Super',
+        lname: 'Admin',
+        email: 'superadmin@autosphere.com',
+        phone: '555-0100',
+        country: 'Nigeria',
+        state: 'Lagos',
+        role: 'superadmin',
+        password: 'password123',
+        status: 'Active',
+        address: { street: '1 Admin Way', city: 'Abuja', zip: '900101' },
+        verificationStatus: 'Verified',
+        kycDocument: null,
+    },
+    {
+        fname: 'John',
+        lname: 'Dealer',
+        email: 'dealer@autosphere.com',
+        phone: '555-0101',
+        country: 'United States',
+        state: 'California',
+        role: 'dealer',
+        password: 'password123',
+        status: 'Active',
+        address: { street: '123 Car Lane', city: 'Los Angeles', zip: '90001' },
+        verificationStatus: 'Pending',
+        kycDocument: {
+            type: 'DriversLicense',
+            front: 'https://images.unsplash.com/photo-1599292132535-3610a543f090?w=400',
+            back: 'https://images.unsplash.com/photo-1614704543445-add56a025642?w=400'
+        },
+    },
+    {
+        fname: 'Jane',
+        lname: 'Customer',
+        email: 'customer@autosphere.com',
+        phone: '555-0102',
+        country: 'Canada',
+        state: 'Ontario',
+        role: 'customer',
+        password: 'password123',
+        status: 'Active',
+        address: null,
+        verificationStatus: 'Unverified',
+        kycDocument: null,
+    },
+     {
+        fname: 'Bob',
+        lname: 'Blocked',
+        email: 'blocked@autosphere.com',
+        phone: '555-0103',
+        country: 'United Kingdom',
+        state: 'England',
+        role: 'customer',
+        password: 'password123',
+        status: 'Blocked',
+        address: null,
+        verificationStatus: 'Unverified',
+        kycDocument: null,
+    }
+];

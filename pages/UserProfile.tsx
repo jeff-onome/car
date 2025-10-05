@@ -2,24 +2,35 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useUserData } from '../hooks/useUserData';
-import { CARS } from '../constants';
+import { useCars } from '../hooks/useCars';
 import CarCard from '../components/CarCard';
 import Modal from '../components/Modal';
-import type { Car, TestDrive, Purchase } from '../types';
+import type { Car, TestDrive, Purchase, User } from '../types';
 import { 
     CalendarIcon, CheckCircleIcon, ClockIcon, XCircleIcon, CompareIcon, HeartIcon,
     SettingsIcon, KeyIcon, ShieldCheckIcon, BellIcon, LogOutIcon, GoogleIcon, FacebookIcon, ReceiptIcon,
-    MenuIcon, XIcon
+    MenuIcon, XIcon, InformationCircleIcon, UploadIcon, MapPinIcon
 } from '../components/IconComponents';
 
-type Tab = 'garage' | 'compare' | 'drives' | 'purchases' | 'settings';
+type Tab = 'garage' | 'compare' | 'drives' | 'purchases' | 'verification' | 'settings';
+
+const DummyDataIndicator: React.FC<{ message: string }> = ({ message }) => (
+  <div className="bg-blue-500/10 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-md mb-6 flex gap-3" role="alert">
+    <InformationCircleIcon className="h-6 w-6 flex-shrink-0 mt-0.5" />
+    <div>
+      <p className="font-semibold">Example View</p>
+      <p className="text-sm">{message}</p>
+    </div>
+  </div>
+);
 
 const UserProfile: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { 
       favorites, recentlyViewed, compareItems, testDrives, purchases, 
       clearCompare, cancelTestDrive, rescheduleTestDrive 
   } = useUserData();
+  const { cars } = useCars();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('garage');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,22 +43,23 @@ const UserProfile: React.FC = () => {
     return null;
   }
   
-  const tabs = [
+  const tabs: {id: Tab, label: string, icon: React.ReactNode}[] = [
     { id: 'garage', label: 'My Garage', icon: <HeartIcon className="h-5 w-5"/> },
     { id: 'compare', label: 'Vehicle Comparison', icon: <CompareIcon className="h-5 w-5"/> },
     { id: 'drives', label: 'My Test Drives', icon: <CalendarIcon className="h-5 w-5"/> },
     { id: 'purchases', label: 'Purchase History', icon: <ReceiptIcon className="h-5 w-5"/> },
+    { id: 'verification', label: 'Account Verification', icon: <ShieldCheckIcon className="h-5 w-5"/> },
     { id: 'settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5"/> }
   ];
 
   const activeTabData = useMemo(() => tabs.find(t => t.id === activeTab), [activeTab, tabs]);
   
-  const favoriteCars = useMemo(() => CARS.filter(car => favorites.includes(car.id)), [favorites]);
+  const favoriteCars = useMemo(() => cars.filter(car => favorites.includes(car.id)), [favorites, cars]);
   const recentlyViewedCars = useMemo(() => {
-    const carMap = new Map(CARS.map(car => [car.id, car]));
+    const carMap = new Map(cars.map(car => [car.id, car]));
     return recentlyViewed.map(id => carMap.get(id)).filter((car): car is Car => car !== undefined);
-  }, [recentlyViewed]);
-  const compareCars = useMemo(() => CARS.filter(car => compareItems.includes(car.id)), [compareItems]);
+  }, [recentlyViewed, cars]);
+  const compareCars = useMemo(() => cars.filter(car => compareItems.includes(car.id)), [compareItems, cars]);
 
   const handleLogout = () => {
     logout();
@@ -62,15 +74,17 @@ const UserProfile: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'garage':
-        return <GarageContent favoriteCars={favoriteCars} recentlyViewedCars={recentlyViewedCars} />;
+        return <GarageContent favoriteCars={favoriteCars} recentlyViewedCars={recentlyViewedCars} cars={cars} />;
       case 'compare':
-        return <CompareContent compareCars={compareCars} clearCompare={clearCompare} />;
+        return <CompareContent compareCars={compareCars} cars={cars} clearCompare={clearCompare} />;
       case 'drives':
-        return <TestDrivesContent testDrives={testDrives} cancelTestDrive={cancelTestDrive} onReschedule={setDriveToReschedule} />;
+        return <TestDrivesContent testDrives={testDrives} cars={cars} cancelTestDrive={cancelTestDrive} onReschedule={setDriveToReschedule} />;
       case 'purchases':
-        return <PurchaseHistoryContent purchases={purchases} onSelectPurchase={setSelectedPurchase} />;
+        return <PurchaseHistoryContent purchases={purchases} cars={cars} onSelectPurchase={setSelectedPurchase} />;
+      case 'verification':
+        return <VerificationContent user={user} updateUser={updateUser} />;
       case 'settings':
-        return <SettingsContent logout={handleLogout} />;
+        return <SettingsContent user={user} updateUser={updateUser} logout={handleLogout} />;
       default:
         return null;
     }
@@ -80,7 +94,10 @@ const UserProfile: React.FC = () => {
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground">Welcome back, {user.fname}!</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-4xl font-bold text-foreground">Welcome back, {user.fname}!</h1>
+              <VerificationStatusBadge status={user.verificationStatus} />
+            </div>
             <p className="mt-2 text-lg text-muted-foreground">Manage your vehicles and appointments here.</p>
         </div>
         
@@ -104,7 +121,7 @@ const UserProfile: React.FC = () => {
                           <button
                               key={tab.id}
                               onClick={() => {
-                                  setActiveTab(tab.id as Tab);
+                                  setActiveTab(tab.id);
                                   setIsMobileMenuOpen(false);
                               }}
                               className={`w-full flex items-center justify-start gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
@@ -124,7 +141,7 @@ const UserProfile: React.FC = () => {
                 {tabs.map(tab => (
                    <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as Tab)}
+                        onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center justify-center sm:justify-start gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                             activeTab === tab.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                         }`}
@@ -141,10 +158,11 @@ const UserProfile: React.FC = () => {
           </main>
         </div>
       </div>
-      {selectedPurchase && <InvoiceModal purchase={selectedPurchase} onClose={() => setSelectedPurchase(null)} />}
+      {selectedPurchase && <InvoiceModal purchase={selectedPurchase} cars={cars} onClose={() => setSelectedPurchase(null)} />}
        {driveToReschedule && (
         <RescheduleModal
           drive={driveToReschedule}
+          cars={cars}
           onClose={() => setDriveToReschedule(null)}
           onConfirm={handleRescheduleConfirm}
         />
@@ -153,65 +171,88 @@ const UserProfile: React.FC = () => {
   );
 };
 
-const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[] }> = ({ favoriteCars, recentlyViewedCars }) => (
-    <div>
-        <Section title="Favorite Vehicles">
-            {favoriteCars.length > 0 ? (
-                <CarGrid cars={favoriteCars} />
-            ) : (
-                <EmptyState message="You haven't favorited any cars yet." />
-            )}
-        </Section>
-        <Section title="Recently Viewed">
-            {recentlyViewedCars.length > 0 ? (
-                <CarGrid cars={recentlyViewedCars} />
-            ) : (
-                <EmptyState message="Your viewing history is empty." />
-            )}
-        </Section>
-    </div>
-);
+const GarageContent: React.FC<{ favoriteCars: Car[], recentlyViewedCars: Car[], cars: Car[] }> = ({ favoriteCars, recentlyViewedCars, cars }) => {
+    const { favorites, recentlyViewed } = useUserData();
 
-const CompareContent: React.FC<{ compareCars: Car[], clearCompare: () => void }> = ({ compareCars, clearCompare }) => (
-    <Section title="Vehicle Comparison">
-        {compareCars.length > 0 ? (
-            <div>
+    const dummyFavoriteCars = useMemo(() => [cars[1], cars[3]].filter(Boolean), [cars]);
+    const dummyRecentlyViewedCars = useMemo(() => [cars[0], cars[2]].filter(Boolean), [cars]);
+
+    const showDummyFavorites = favorites.length === 0;
+    const showDummyRecentlyViewed = recentlyViewed.length === 0;
+
+    return (
+        <div>
+            <Section title="Favorite Vehicles">
+                {showDummyFavorites ? (
+                    <>
+                        <DummyDataIndicator message="Add cars to your favorites to see them here. Here's an example:" />
+                        <CarGrid cars={dummyFavoriteCars} />
+                    </>
+                ) : (
+                    <CarGrid cars={favoriteCars} />
+                )}
+            </Section>
+            <Section title="Recently Viewed">
+                 {showDummyRecentlyViewed ? (
+                    <>
+                        <DummyDataIndicator message="Cars you view will appear here. Here's an example:" />
+                        <CarGrid cars={dummyRecentlyViewedCars} />
+                    </>
+                ) : (
+                    <CarGrid cars={recentlyViewedCars} />
+                )}
+            </Section>
+        </div>
+    );
+};
+
+const CompareContent: React.FC<{ compareCars: Car[], cars: Car[], clearCompare: () => void }> = ({ compareCars, cars, clearCompare }) => {
+    const { compareItems } = useUserData();
+    
+    const dummyCompareCars = useMemo(() => [cars[5], cars[7]].filter(Boolean), [cars]);
+
+    const showDummyData = compareItems.length === 0;
+    const carsToDisplay = showDummyData ? dummyCompareCars : compareCars;
+    
+    return (
+        <Section title="Vehicle Comparison">
+             {showDummyData ? (
+                <DummyDataIndicator message="Add up to 4 cars from inventory to compare them side-by-side. Here's how it will look." />
+            ) : (
                 <button onClick={clearCompare} className="mb-4 text-sm text-accent hover:underline">Clear All</button>
-                <div className="overflow-x-auto bg-secondary p-4 rounded-lg border border-border">
-                    <table className="w-full min-w-[600px] text-left">
-                        <thead>
-                            <tr className="border-b border-border">
-                                <th className="p-3 font-semibold text-foreground w-1/5">Feature</th>
-                                {compareCars.map(car => (
-                                    <th key={car.id} className="p-3 font-semibold text-foreground w-1/5">{car.make} {car.model}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <CompareRow label="Image" items={compareCars.map(c => <img src={c.images[0]} alt={c.make} className="w-full h-24 object-cover rounded"/>)} />
-                            <CompareRow label="Price" items={compareCars.map(c => `₦${c.price.toLocaleString()}`)} isBold />
-                            <CompareRow label="Year" items={compareCars.map(c => c.year)} />
-                            <CompareRow label="Mileage" items={compareCars.map(c => `${c.mileage.toLocaleString()} mi`)} />
-                            <CompareRow label="Horsepower" items={compareCars.map(c => `${c.horsepower} hp`)} />
-                            <CompareRow label="Fuel Type" items={compareCars.map(c => c.fuelType)} />
-                            <CompareRow label="Transmission" items={compareCars.map(c => c.transmission)} />
-                             <CompareRow label="Features" items={compareCars.map(c => <ul className="text-xs list-disc list-inside">{c.features.slice(0, 3).map(f => <li key={f}>{f}</li>)}</ul>)} />
-                        </tbody>
-                    </table>
-                </div>
+            )}
+            <div className="overflow-x-auto bg-secondary p-4 rounded-lg border border-border">
+                <table className="w-full min-w-[600px] text-left">
+                    <thead>
+                        <tr className="border-b border-border">
+                            <th className="p-3 font-semibold text-foreground w-1/5">Feature</th>
+                            {carsToDisplay.map(car => (
+                                <th key={car.id} className="p-3 font-semibold text-foreground w-1/5">{car.make} {car.model}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <CompareRow label="Image" items={carsToDisplay.map(c => <img src={c.images[0]} alt={c.make} className="w-full h-24 object-cover rounded"/>)} />
+                        <CompareRow label="Price" items={carsToDisplay.map(c => `₦${c.price.toLocaleString()}`)} isBold />
+                        <CompareRow label="Year" items={carsToDisplay.map(c => c.year)} />
+                        <CompareRow label="Mileage" items={carsToDisplay.map(c => `${c.mileage.toLocaleString()} mi`)} />
+                        <CompareRow label="Horsepower" items={carsToDisplay.map(c => `${c.horsepower} hp`)} />
+                        <CompareRow label="Fuel Type" items={carsToDisplay.map(c => c.fuelType)} />
+                        <CompareRow label="Transmission" items={carsToDisplay.map(c => c.transmission)} />
+                        <CompareRow label="Features" items={carsToDisplay.map(c => <ul className="text-xs list-disc list-inside">{c.features.slice(0, 3).map(f => <li key={f}>{f}</li>)}</ul>)} />
+                    </tbody>
+                </table>
             </div>
-        ) : (
-            <EmptyState message="Add up to 4 cars from the inventory to compare them side-by-side." />
-        )}
-    </Section>
-);
+        </Section>
+    );
+};
 
-const TestDrivesContent: React.FC<{testDrives: TestDrive[], cancelTestDrive: (id: number) => void, onReschedule: (drive: TestDrive) => void}> = ({ testDrives, cancelTestDrive, onReschedule }) => (
+const TestDrivesContent: React.FC<{testDrives: TestDrive[], cars: Car[], cancelTestDrive: (id: number) => void, onReschedule: (drive: TestDrive) => void}> = ({ testDrives, cars, cancelTestDrive, onReschedule }) => (
     <Section title="My Test Drives">
         {testDrives.length > 0 ? (
             <div className="space-y-4">
                 {testDrives.sort((a,b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()).map(drive => {
-                    const car = CARS.find(c => c.id === drive.carId);
+                    const car = cars.find(c => c.id === drive.carId);
                     if (!car) return null;
                     const isUpcoming = new Date(drive.bookingDate) > new Date();
                     return (
@@ -239,12 +280,12 @@ const TestDrivesContent: React.FC<{testDrives: TestDrive[], cancelTestDrive: (id
     </Section>
 );
 
-const PurchaseHistoryContent: React.FC<{ purchases: Purchase[], onSelectPurchase: (p: Purchase) => void }> = ({ purchases, onSelectPurchase }) => (
+const PurchaseHistoryContent: React.FC<{ purchases: Purchase[], cars: Car[], onSelectPurchase: (p: Purchase) => void }> = ({ purchases, cars, onSelectPurchase }) => (
     <Section title="Purchase History">
         {purchases.length > 0 ? (
             <div className="space-y-4">
                 {purchases.sort((a,b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()).map(purchase => {
-                    const car = CARS.find(c => c.id === purchase.carId);
+                    const car = cars.find(c => c.id === purchase.carId);
                     if (!car) return null;
                     return (
                         <div key={purchase.id} className="bg-secondary p-4 rounded-lg border border-border flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -268,8 +309,8 @@ const PurchaseHistoryContent: React.FC<{ purchases: Purchase[], onSelectPurchase
     </Section>
 );
 
-const InvoiceModal: React.FC<{ purchase: Purchase; onClose: () => void }> = ({ purchase, onClose }) => {
-    const car = CARS.find(c => c.id === purchase.carId);
+const InvoiceModal: React.FC<{ purchase: Purchase; cars: Car[]; onClose: () => void }> = ({ purchase, cars, onClose }) => {
+    const car = cars.find(c => c.id === purchase.carId);
 
     if (!car) return null;
 
@@ -320,8 +361,8 @@ const InvoiceModal: React.FC<{ purchase: Purchase; onClose: () => void }> = ({ p
     );
 };
 
-const RescheduleModal: React.FC<{ drive: TestDrive; onClose: () => void; onConfirm: (driveId: number, newDate: string) => void }> = ({ drive, onClose, onConfirm }) => {
-    const car = CARS.find(c => c.id === drive.carId);
+const RescheduleModal: React.FC<{ drive: TestDrive; cars: Car[]; onClose: () => void; onConfirm: (driveId: number, newDate: string) => void }> = ({ drive, cars, onClose, onConfirm }) => {
+    const car = cars.find(c => c.id === drive.carId);
     const initialDate = new Date(drive.bookingDate);
     const [newDate, setNewDate] = useState(initialDate.toISOString().split('T')[0]);
     const [newTime, setNewTime] = useState(initialDate.toTimeString().substring(0, 5));
@@ -379,12 +420,191 @@ const RescheduleModal: React.FC<{ drive: TestDrive; onClose: () => void; onConfi
     );
 };
 
-const SettingsContent: React.FC<{ logout: () => void }> = ({ logout }) => {
+interface VerificationContentProps {
+  user: User;
+  updateUser: (data: Partial<User>) => void;
+}
+const VerificationContent: React.FC<VerificationContentProps> = ({ user, updateUser }) => {
+  const [docType, setDocType] = useState<User['kycDocument']['type'] | ''>('');
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [backImage, setBackImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFileSelect = (file: File | null, side: 'front' | 'back') => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (side === 'front') setFrontImage(result);
+      else setBackImage(result);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleSubmit = () => {
+    setError('');
+    if (!docType) {
+      setError('Please select a document type.');
+      return;
+    }
+    if (!frontImage) {
+      setError('Please upload the required document image.');
+      return;
+    }
+    if (docType === 'DriversLicense' && !backImage) {
+      setError('Please upload both front and back images for the Driver\'s License.');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setTimeout(() => { // Simulate API call
+      updateUser({
+        verificationStatus: 'Pending',
+        kycDocument: { type: docType, front: frontImage, back: backImage || undefined }
+      });
+      setIsSubmitting(false);
+    }, 1500);
+  };
+
+  const VerificationForm = () => (
+    <div className="bg-secondary p-6 rounded-lg border border-border">
+      <h3 className="text-lg font-semibold text-foreground mb-1">Submit Your Documents</h3>
+      <p className="text-sm text-muted-foreground mb-4">Choose one of the following government-issued documents.</p>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1">Document Type</label>
+          <select 
+            value={docType}
+            onChange={(e) => setDocType(e.target.value as any)}
+            className="w-full bg-background text-foreground border border-input rounded-md p-2 focus:ring-ring focus:border-ring"
+          >
+            <option value="" disabled>Select a document</option>
+            <option value="NIN">National ID Card (NIN)</option>
+            <option value="DriversLicense">Driver’s License</option>
+            <option value="Passport">International Passport</option>
+          </select>
+        </div>
+
+        {docType && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FileInput
+              id="front-image"
+              label={docType === 'DriversLicense' ? 'Front Side' : 'Document Image'}
+              onFileSelect={(file) => handleFileSelect(file, 'front')}
+              preview={frontImage}
+            />
+            {docType === 'DriversLicense' && (
+              <FileInput
+                id="back-image"
+                label="Back Side"
+                onFileSelect={(file) => handleFileSelect(file, 'back')}
+                preview={backImage}
+              />
+            )}
+          </div>
+        )}
+        
+        {error && <p className="text-sm text-red-500">{error}</p>}
+
+        <button 
+          onClick={handleSubmit} 
+          disabled={!docType || isSubmitting}
+          className="w-full bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors disabled:bg-muted disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
+        </button>
+      </div>
+      <div className="mt-4 text-xs text-muted-foreground p-4 bg-background rounded-md">
+        <h4 className="font-semibold mb-2">Requirements:</h4>
+        <ul className="list-disc list-inside space-y-1">
+          <li>Must be government-issued and not expired.</li>
+          <li>All text and your photo must be clearly visible.</li>
+          <li>File formats accepted: JPG, PNG. Max size: 5MB.</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const StatusView = ({ status, title, message, icon }: {status: 'Pending' | 'Verified' | 'Rejected', title: string, message: string, icon: React.ReactNode}) => {
+    const colors = {
+      Pending: "border-yellow-500 text-yellow-700 dark:text-yellow-300 bg-yellow-500/10",
+      Verified: "border-green-500 text-green-700 dark:text-green-300 bg-green-500/10",
+      Rejected: "border-red-500 text-red-700 dark:text-red-300 bg-red-500/10",
+    }
+    return (
+      <div className={`p-6 rounded-lg border-l-4 ${colors[status]} flex gap-4`}>
+        <div className="flex-shrink-0 text-2xl">{icon}</div>
+        <div>
+          <h3 className="font-bold text-lg">{title}</h3>
+          <p className="text-sm">{message}</p>
+           {status === 'Rejected' && (
+              <button 
+                onClick={() => updateUser({ verificationStatus: 'Unverified', kycDocument: null })}
+                className="mt-3 text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+              >
+                Resubmit Documents
+              </button>
+            )}
+        </div>
+      </div>
+    )
+  }
+
+  switch (user?.verificationStatus) {
+    case 'Verified':
+      return <StatusView status="Verified" title="Account Verified" message="Your identity has been successfully verified. You now have full access to all features." icon={<CheckCircleIcon />} />;
+    case 'Pending':
+      return <StatusView status="Pending" title="Verification Pending" message="Your documents have been submitted and are under review. This process usually takes 1-2 business days." icon={<ClockIcon />} />;
+    case 'Rejected':
+      return <StatusView status="Rejected" title="Verification Rejected" message="We were unable to verify your documents. Please ensure they meet all requirements and try again." icon={<XCircleIcon />} />;
+    default:
+      return <Section title="Account Verification"><VerificationForm /></Section>;
+  }
+};
+
+
+const FileInput: React.FC<{id: string, label: string, onFileSelect: (file: File | null) => void, preview: string | null}> = ({id, label, onFileSelect, preview}) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-foreground mb-1">{label}</label>
+    <label htmlFor={id} className="cursor-pointer bg-background border-2 border-dashed border-border rounded-lg p-4 text-center flex flex-col items-center justify-center h-40">
+      {preview ? (
+        <img src={preview} alt="Preview" className="max-h-full max-w-full object-contain"/>
+      ) : (
+        <div className="text-muted-foreground">
+          <UploadIcon className="h-8 w-8 mx-auto mb-2"/>
+          <span className="text-sm">Click to upload</span>
+        </div>
+      )}
+      <input id={id} type="file" className="hidden" accept="image/png, image/jpeg" onChange={e => onFileSelect(e.target.files ? e.target.files[0] : null)}/>
+    </label>
+  </div>
+);
+
+interface SettingsContentProps {
+  user: User;
+  updateUser: (data: Partial<User>) => void;
+  logout: () => void;
+}
+
+const SettingsContent: React.FC<SettingsContentProps> = ({ user, updateUser, logout }) => {
     const [notifications, setNotifications] = useState({
         newVehicles: true,
         promotions: true,
         testDrives: false,
     });
+    const [address, setAddress] = useState(user?.address || { street: '', city: '', zip: ''});
+
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAddress({...address, [e.target.name]: e.target.value});
+    };
+
+    const handleAddressSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        updateUser({ address });
+        alert('Address updated!');
+    };
 
     const handleNotificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNotifications({
@@ -394,8 +614,39 @@ const SettingsContent: React.FC<{ logout: () => void }> = ({ logout }) => {
         alert('Notification preferences updated (mock).');
     };
 
+    const inputClasses = "appearance-none block w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-ring focus:border-ring sm:text-sm";
+
+
     return (
         <div className="space-y-12">
+            <Section title="My Address">
+              <form onSubmit={handleAddressSubmit} className="p-4 bg-secondary rounded-lg border border-border space-y-4">
+                <div className="flex items-center gap-4">
+                  <MapPinIcon className="h-6 w-6 text-muted-foreground" />
+                   <div>
+                      <h4 className="font-semibold text-foreground">Delivery & Billing Address</h4>
+                      <p className="text-sm text-muted-foreground">Used for vehicle deliveries and official documents.</p>
+                  </div>
+                </div>
+                <div>
+                   <label htmlFor="street" className="text-sm font-medium">Street Address</label>
+                   <input type="text" name="street" value={address.street} onChange={handleAddressChange} className={inputClasses + " mt-1"} />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <label htmlFor="city" className="text-sm font-medium">City</label>
+                       <input type="text" name="city" value={address.city} onChange={handleAddressChange} className={inputClasses + " mt-1"} />
+                    </div>
+                     <div>
+                       <label htmlFor="zip" className="text-sm font-medium">ZIP / Postal Code</label>
+                       <input type="text" name="zip" value={address.zip} onChange={handleAddressChange} className={inputClasses + " mt-1"} />
+                    </div>
+                 </div>
+                 <div className="text-right">
+                    <button type="submit" className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Save Address</button>
+                 </div>
+              </form>
+            </Section>
             <Section title="Account Security">
                 <div className="space-y-4">
                     <SettingsRow
@@ -500,6 +751,17 @@ const StatusBadge: React.FC<{status: TestDrive['status']}> = ({ status }) => {
     };
     const style = statusStyles[status];
     return <div className={`mt-2 inline-flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-full ${style.bg} ${style.text}`}>{React.cloneElement(style.icon, {className: "h-4 w-4"})} {status}</div>
+};
+
+const VerificationStatusBadge: React.FC<{status: User['verificationStatus']}> = ({ status }) => {
+    const statusStyles = {
+        Verified: { text: 'text-green-500', bg: 'bg-green-500/10' },
+        Pending: { text: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+        Unverified: { text: 'text-gray-500', bg: 'bg-gray-500/10' },
+        Rejected: { text: 'text-red-500', bg: 'bg-red-500/10' },
+    };
+    const style = statusStyles[status];
+    return <div className={`inline-flex items-center text-sm font-semibold px-3 py-1 rounded-full ${style.bg} ${style.text}`}>{status}</div>
 };
 
 const Section: React.FC<{title: string, children: React.ReactNode}> = ({ title, children }) => (

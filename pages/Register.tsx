@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { COUNTRIES_WITH_STATES } from '../data/locationData';
 import { ArrowLeftIcon } from '../components/IconComponents';
+import { User } from '../types';
 
 const Register: React.FC = () => {
   const [fname, setFname] = useState('');
@@ -54,11 +55,21 @@ const Register: React.FC = () => {
             return;
         }
 
-        const newUser = { fname, lname, email, phone, country, state, password };
-        const newUsers = [...storedUsers, newUser];
+        const role = email === 'superadmin@autosphere.com' ? 'superadmin' 
+                   : email === 'dealer@autosphere.com' ? 'dealer' 
+                   : 'customer';
+
+        const newUserForStorage = { fname, lname, email, phone, country, state, password, role, status: 'Active' as const };
+        const newUsers = [...storedUsers, newUserForStorage];
         localStorage.setItem('registered_users', JSON.stringify(newUsers));
         
-        const { password: _p, ...userToRegister } = newUser;
+        const userToRegister: User = {
+          fname, lname, email, phone, country, state, role,
+          status: 'Active',
+          address: null,
+          verificationStatus: 'Unverified',
+          kycDocument: null,
+        };
         register(userToRegister);
         navigate('/');
 
